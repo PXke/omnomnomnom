@@ -21,7 +21,7 @@ def search():
     regex = re.compile(".*{0}.*".format(search_term))
     results = mongo.db["item"].find({"attributes.name": {"$regex": regex}})
     results = results[:limit]
-    results = [correct_dict(res["attributes"]) for res in results]
+    results = [change_keys(res["attributes"]) for res in results]
     return json.dumps({"results": results})
 
 
@@ -35,12 +35,20 @@ def insert():
         return json.dumps({"code": 1, "message": "Insertion failed"})
 
 
-def correct_dict(d):
-    new = {}
-    for k, v in d.iteritems():
-        if isinstance(v, dict):
-            v = correct_dict(v)
-        new[k.replace('-', '_')] = v
+def change_keys(obj):
+    """
+    Recursivly goes through the dictionnary obj and replaces keys with the convert function.
+    """
+    if isinstance(obj, dict):
+        new = {}
+        for k, v in obj.iteritems():
+            new[k.replace("-","_")] = change_keys(v)
+    elif isinstance(obj, list):
+        new = []
+        for v in obj:
+            new.append(change_keys(v))
+    else:
+        return obj
     return new
 
 
