@@ -37,6 +37,7 @@ def search():
             except Exception:
                 g = Nominatim()
                 d1 = g.geocode(country)
+                print res
                 d2 = g.geocode(res["origins"][0])
                 co2 = compute_co2(vincenty(d1.point, d2.point).kilometers)
                 res["estimated_co2"] = co2
