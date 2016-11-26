@@ -11,7 +11,11 @@ mongo = PyMongo(app)
 def search():
     search_term = request.args.get("searchparam")
     limit = request.args.get("limit", 10)
-    limit = int(limit)
+    try:
+        limit = int(limit)
+    except:
+        limit = 10
+        
     if limit > 1000:
         limit = 1000
     regex = re.compile(".*{0}.*".format(search_term))
