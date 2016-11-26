@@ -1,3 +1,5 @@
 SQLAlchemy
 Flask
 Flask-PyMongo
+pandas
+numpy
