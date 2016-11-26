@@ -29,7 +29,7 @@ def search():
     results = [change_keys(res["attributes"]) for res in results]
 
     for res in results:
-        if "estimated_CO2" not in res and "origins" in res:
+        if "estimated_CO2" not in res and "origins" in res and res["origins"]:
             try:
                 traject = mongo.db["traject"].find({"from": res["origins"][0], "to": country}).next()
                 co2 = traject["co2"]
@@ -37,7 +37,6 @@ def search():
             except Exception:
                 g = Nominatim()
                 d1 = g.geocode(country)
-                print res
                 d2 = g.geocode(res["origins"][0])
                 co2 = compute_co2(vincenty(d1.point, d2.point).kilometers)
                 res["estimated_co2"] = co2
