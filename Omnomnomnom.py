@@ -15,14 +15,33 @@ def search():
         limit = int(limit)
     except:
         limit = 10
-        
+
     if limit > 1000:
         limit = 1000
     regex = re.compile(".*{0}.*".format(search_term))
     results = mongo.db["item"].find({"attributes.name": {"$regex": regex}})
     results = results[:limit]
-    results = [res["attributes"] for res in results]
+    results = [correct_dict(res["attributes"]) for res in results]
     return json.dumps({"results": results})
+
+
+@app.route('/insert', methods=["POST"])
+def insert():
+    try:
+        content = request.get_json(silent=True)
+        mongo.db["item"].update(content, content, upsert=True)
+        return json.dumps({"code": 0, "message": "Insertion succeed"})
+    except:
+        return json.dumps({"code": 1, "message": "Insertion failed"})
+
+
+def correct_dict(d):
+    new = {}
+    for k, v in d.iteritems():
+        if isinstance(v, dict):
+            v = correct_dict(v)
+        new[k.replace('-', '_')] = v
+    return new
 
 
 if __name__ == '__main__':
