@@ -3,3 +3,5 @@ Flask
 Flask-PyMongo
 pandas
 numpy
+geopy
+pycountry
