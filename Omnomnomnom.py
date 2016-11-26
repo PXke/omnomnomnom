@@ -12,6 +12,7 @@ def search():
     search_term = request.args.get("searchparam")
     regex = re.compile(".*{0}.*".format(search_term))
     results = mongo.db["item"].find({"attributes.name": {"$regex": regex}})
+    results = results[:10]
     results = [res["attributes"] for res in results]
     return json.dumps({"results": results})
 
