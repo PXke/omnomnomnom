@@ -2,28 +2,7 @@
 import pandas as pd
 import numpy as np
 import sys
-
-def split_names(string): # There is probably a library that does that but I don't want to look for it...
-	split_string = []
-	new_word = ""
-	start = False
-
-	for letter in string:
-		if letter == "\"" and not start:
-			start = True
-			continue
-
-		elif letter == "\"" and start :
-			split_string.append(new_word)
-			new_word = ""
-			start = False
-			continue
-		if start :
-			new_word += letter
-			continue
-
-	return split_string
-
+import time
 
 def print_progress(iteration, total, prefix='', suffix='', decimals=1,
 	barLength=100):
@@ -41,58 +20,73 @@ def print_progress(iteration, total, prefix='', suffix='', decimals=1,
 	bar             = '█' * filledLength + '-' * (barLength - filledLength)
 	sys.stdout.write('\r%s |%s| %s%s %s' % (prefix, bar, percents, '%', suffix)),
 	if iteration == total:
-		sys.stdout.write('\n')
+	    sys.stdout.write('\n')
 	sys.stdout.flush()
 
-OUTPUTPATH = "./JSON_files/"
+def clean_db(df) :
 
-nutrients = pd.read_csv("nutrients.csv")
-products = pd.read_csv("products.csv")
-product_nutrients = pd.read_csv("product_nutrients.csv")
+	for index, line in enumerate(df["results"][:]) :
 
-#Some cleaning on the original files
-df_products = products.dropna(subset=["name_translations"])
-df_products = df_products.drop(["created_at","updated_at", "remarks", "origin_translations"], axis = 1)
-df_product_nutrients = product_nutrients.drop(["created_at","updated_at"], axis = 1) 
-df_nutrients = nutrients.drop(["created_at","updated_at"], axis = 1)
+		df['quantity'].iloc[index] = line['quantity']
+		df['ingredients'].iloc[index] = line['ingredients']
+		df['origins'].iloc[index] = line['origins']
+		df['nutrients'].iloc[index] = line['nutrients']
+		df['images'].iloc[index] = line['images']
+		df['barcode'].iloc[index] = line['barcode']
+		df['portion-quantity'].iloc[index] = line['portion-quantity']
+		df['name'].iloc[index] = line['name']
+		#df['status'].iloc[index] = line['status']
+		df['unit'].iloc[index] = line['unit']
+		df["products_names_fr"].iloc[index] = line['name-translations'].get("fr")
+		df["products_names_en"].iloc[index] = line['name-translations'].get("en")
+		df["products_names_it"].iloc[index] = line['name-translations'].get("it")
+		df["products_names_de"].iloc[index] = line['name-translations'].get("de")
+		df["origins_names_fr"].iloc[index] = line["origin-translations"].get("fr")
+		df["origins_names_en"].iloc[index] = line["origin-translations"].get("en")
+		df["origins_names_it"].iloc[index] = line["origin-translations"].get("it")
+		df["origins_names_de"].iloc[index] = line["origin-translations"].get("de")
+		df["ingredients_names_fr"].iloc[index] = line["ingredients-translations"].get("fr") 
+		df["ingredients_names_en"].iloc[index] = line["ingredients-translations"].get("en") 
+		df["ingredients_names_it"].iloc[index] = line["ingredients-translations"].get("it") 
+		df["ingredients_names_de"].iloc[index] = line["ingredients-translations"].get("de") 
+		print_progress(index+1,df.shape[0], decimals=2)
+	df = df.drop(["results"], axis=1)
+	return df
 
-df_products.to_json("chose.json")
 
-df_products["products_names_fr"] = np.nan
-df_products["products_names_en"] = np.nan
-df_products["products_names_it"] = np.nan
-df_products["products_names_de"] = np.nan
+beg=time.time()
+OUTPUTPATH = "../"
+INPUTDB = "../subset.json"
+#INPUTDB = "../Original_database.json"
 
-print(df_products[:5])
+db = pd.read_json(INPUTDB)
+db['quantity'] = np.nan
+db['ingredients'] = np.nan
+db['origins'] = np.nan
+db['nutrients'] = np.nan
+db['images'] = np.nan
+db['barcode'] = np.nan
+db['portion-quantity'] = np.nan
+db['name'] = np.nan
+#db['status'] = np.nan
+db['unit'] = np.nan
+db["products_names_fr"] = np.nan
+db["products_names_en"] = np.nan
+db["products_names_it"] = np.nan
+db["products_names_de"] = np.nan
+db["origins_names_fr"]= np.nan
+db["origins_names_en"]= np.nan
+db["origins_names_it"]= np.nan
+db["origins_names_de"]= np.nan
+db["ingredients_names_fr"]= np.nan
+db["ingredients_names_en"]= np.nan
+db["ingredients_names_it"]= np.nan
+db["ingredients_names_de"]= np.nan
+print("...")
 
-for index, products in enumerate(df_products["name_translations"]) :
-	
-	products = split_names(products)
 
-	for i in range(0,len(products)//2, 2) :
-		if products[i] == "fr" :
-			df_products["products_names_fr"].iloc[index] = products[i+1]
-		elif products[i] == "de":
-			df_products["products_names_de"].iloc[index] = products[i+1]
-		elif products[i] == "en":
-			df_products["products_names_en"].iloc[index] = products[i+1]
-		elif products[i] == "it":
-			df_products["products_names_it"].iloc[index] = products[i+1]
-		else :
-			print("error : incorrect language detected :\n {}".format(products[i]))
+new_db = clean_db(db)
+print(new_db)
 
-	print_progress(index, df_products.shape[0], barLength=50)
 
-#df_products = df_products.drop(["name_translations"], axis=1)
-
-#df_products.to_sql("chose.xml")
-
-#Mapping the files to the final dataframe
-
-df_products.to_json(OUTPUTPATH+"filtered_products.json", orient="records")
-df_products.to_csv(OUTPUTPATH+"filtered_products.csv")
-df_product_nutrients.to_json(OUTPUTPATH+"filtered_products_nutrients.json", orient="records")
-df_product_nutrients.to_csv(OUTPUTPATH+"filtered_products_nutrients.csv")
-df_nutrients.to_json(OUTPUTPATH+"filtered_nutrients.json", orient="records")
-df_nutrients.to_csv(OUTPUTPATH+"filtered_nutrients.csv")
-
+new_db.to_csv(OUTPUTPATH+"/modified_db.csv")
