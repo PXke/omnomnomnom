@@ -20,10 +20,11 @@ def search():
         int(search_term)
         # We have a barcode
         regex = re.compile(u".*{0}.*".format(search_term), re.IGNORECASE)
-        results = mongo.db["item"].find({"attributes.name": {"$regex": regex}})
+        results = mongo.db["item"].find({"attributes.barcode": {"$regex": regex}})
     except:
         regex = re.compile(u".*{0}.*".format(search_term), re.IGNORECASE)
-        results = mongo.db["item"].find({"attributes.barcode": {"$regex": regex}})
+        results = mongo.db["item"].find({"attributes.name": {"$regex": regex}})
+
 
     try:
         limit = int(limit)
