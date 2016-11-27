@@ -36,11 +36,14 @@ def search():
                 res["estimated_co2"] = co2
             except Exception:
                 g = Nominatim()
-                d1 = g.geocode(country)
-                d2 = g.geocode(res["origins"][0])
-                co2 = compute_co2(vincenty(d1.point, d2.point).kilometers)
-                res["estimated_co2"] = co2
-                mongo.db["traject"].insert({"from": res["origins"][0], "to": country, "co2": co2})
+                try:
+                    d1 = g.geocode(country)
+                    d2 = g.geocode(res["origins"][0])
+                    co2 = compute_co2(vincenty(d1.point, d2.point).kilometers)
+                    res["estimated_co2"] = co2
+                    mongo.db["traject"].insert({"from": res["origins"][0], "to": country, "co2": co2})
+                except AttributeError:
+                    mongo.db["to_correct"].insert(res)
 
     return json.dumps({"results": results})
 
