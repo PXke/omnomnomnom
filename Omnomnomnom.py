@@ -44,7 +44,7 @@ def search():
                     res["estimated_co2"] = co2
                     mongo.db["traject"].insert({"from": res["origins"][0], "to": country, "co2": co2})
                 except AttributeError:
-                    mongo.db["to_correct"].insert(res)
+                    mongo.db["to_correct"].insert({"barcode": res["barcode"]})
     try:
         return json.dumps({"results": results})
     except Exception as e:
