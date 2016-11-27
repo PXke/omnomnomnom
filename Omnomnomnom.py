@@ -1,5 +1,6 @@
 import json
 import re
+import traceback
 from geopy.distance import vincenty
 from geopy.geocoders import Nominatim
 from flask import Flask, request
@@ -44,8 +45,12 @@ def search():
                     mongo.db["traject"].insert({"from": res["origins"][0], "to": country, "co2": co2})
                 except AttributeError:
                     mongo.db["to_correct"].insert(res)
-
-    return json.dumps({"results": results})
+    try:
+        return json.dumps({"results": results})
+    except Exception as e:
+        traceback.print_exc()
+        print(results)
+        return json.dumps({})
 
 
 @app.route('/insert', methods=["POST"])
