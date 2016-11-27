@@ -17,13 +17,13 @@ def search():
 
     try:
         limit = int(limit)
-    except:
+    except ValueError:
         limit = 10
 
     if limit > 1000:
         limit = 1000
 
-    regex = re.compile(".*{0}.*".format(search_term))
+    regex = re.compile(u".*{0}.*".format(search_term), re.IGNORECASE)
     results = mongo.db["item"].find({"attributes.name": {"$regex": regex}})
     results = results[:limit]
     results = [change_keys(res["attributes"]) for res in results]
