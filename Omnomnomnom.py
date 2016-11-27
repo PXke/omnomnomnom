@@ -17,6 +17,15 @@ def search():
     country = request.args.get("country", "Switzerland")
 
     try:
+        int(search_term)
+        # We have a barcode
+        regex = re.compile(u".*{0}.*".format(search_term), re.IGNORECASE)
+        results = mongo.db["item"].find({"attributes.name": {"$regex": regex}})
+    except:
+        regex = re.compile(u".*{0}.*".format(search_term), re.IGNORECASE)
+        results = mongo.db["item"].find({"attributes.barcode": {"$regex": regex}})
+
+    try:
         limit = int(limit)
     except ValueError:
         limit = 10
@@ -24,8 +33,7 @@ def search():
     if limit > 1000:
         limit = 1000
 
-    regex = re.compile(u".*{0}.*".format(search_term), re.IGNORECASE)
-    results = mongo.db["item"].find({"attributes.name": {"$regex": regex}})
+
     results = results[:limit]
     results = [change_keys(res["attributes"]) for res in results]
 
